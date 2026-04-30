@@ -53,6 +53,12 @@ export function useMetrics() {
           .gte('created_at', from).lte('created_at', to)
           .eq('Event', 'abandoned_cart_01_SMS')
 
+        const cartEmailPromise = supabase
+          .from('tailgrab_nutra_eua_CRM')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', from).lte('created_at', to)
+          .eq('Event', 'abandoned_cart_01_EMAIL')
+
         const smsDisparosPromise = channel !== 'Email'
           ? supabase
               .from('tailgrab_nutra_eua_CRM')
@@ -83,8 +89,9 @@ export function useMetrics() {
           .eq('Event', 'order_paid')
           .eq('utm_source', 'FRONT')
 
-        const [cartRes, smsDisRes, emailDisRes, salesRes, frontRes] = await Promise.all([
+        const [cartRes, cartEmailRes, smsDisRes, emailDisRes, salesRes, frontRes] = await Promise.all([
           cartPromise,
+          cartEmailPromise,
           smsDisparosPromise,
           emailDisparosPromise,
           salesPromise,
@@ -96,6 +103,9 @@ export function useMetrics() {
         if (cancelled) return
 
         const carrinhosAbandonados = (cartRes as any).count ?? 0
+        const cartSms   = carrinhosAbandonados
+        const cartTotal = carrinhosAbandonados
+        const cartEmail = (cartEmailRes as any).count ?? 0
         const smsDisparos   = (smsDisRes as any).count ?? 0
         const emailDisparos = (emailDisRes as any).count ?? 0
         const totalDisparos = smsDisparos + emailDisparos
@@ -116,9 +126,9 @@ export function useMetrics() {
         const ticketEmail = emailVendas > 0 ? emailReceita / emailVendas : 0
         const ticketTotal = totalVendas > 0 ? totalReceita / totalVendas : 0
 
-        const taxaSms   = smsDisparos   > 0 ? (smsVendas   / smsDisparos)   * 100 : 0
-        const taxaEmail = emailDisparos > 0 ? (emailVendas / emailDisparos) * 100 : 0
-        const taxaTotal = totalDisparos > 0 ? (totalVendas / totalDisparos) * 100 : 0
+        const taxaTotal = cartTotal > 0 ? (totalVendas / cartTotal) * 100 : 0
+        const taxaSms   = cartSms   > 0 ? (smsVendas  / cartSms)   * 100 : 0
+        const taxaEmail = cartEmail > 0 ? (emailVendas / cartEmail) * 100 : 0
 
         const comissao = totalReceita * 0.13
 

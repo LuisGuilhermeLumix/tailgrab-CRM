@@ -8,7 +8,6 @@ import {
   Tooltip,
   Legend,
 } from 'recharts'
-import { format, parseISO } from 'date-fns'
 import type { TrackingChartPoint } from '@/hooks/useTracking'
 
 interface Props {
@@ -16,12 +15,25 @@ interface Props {
   loading: boolean
 }
 
+function formatDateLabel(dateStr: string, includeYear = false): string {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  if (includeYear) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: '2-digit', year: 'numeric'
+    }).format(date)
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short', day: '2-digit'
+  }).format(date)
+}
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 text-xs shadow-lg">
       <p className="mb-2 text-[#888]">
-        {label ? format(parseISO(label), 'MMM dd, yyyy') : ''}
+        {label ? formatDateLabel(label, true) : ''}
       </p>
       {payload.map((p: any) => (
         <p key={p.name} style={{ color: p.color }} className="mb-0.5">
@@ -56,7 +68,7 @@ export function TrackingChart({ data, loading }: Props) {
           <XAxis
             dataKey="date"
             tickFormatter={(v) => {
-              try { return format(parseISO(v), 'MMM dd') } catch { return v }
+              try { return formatDateLabel(v) } catch { return v }
             }}
             tick={{ fill: '#444', fontSize: 11 }}
             axisLine={false}

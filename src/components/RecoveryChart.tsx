@@ -8,7 +8,20 @@ import {
   YAxis,
 } from "recharts";
 import { useChartData } from "@/hooks/useChartData";
-import { formatDateShort, formatDateLong } from "@/lib/format";
+
+// Converte "YYYY-MM-DD" para string legível SEM usar parseISO (evita bug de timezone)
+function formatDateLabel(dateStr: string, includeYear = false): string {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const date = new Date(year, month - 1, day) // construtor local, sem UTC
+  if (includeYear) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: '2-digit', year: 'numeric'
+    }).format(date)
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short', day: '2-digit'
+  }).format(date)
+}
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload || !payload.length) return null;
@@ -25,7 +38,7 @@ function CustomTooltip({ active, payload, label }: any) {
 
   return (
     <div className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 text-xs shadow-lg min-w-[160px]">
-      <p className="mb-2.5 text-[#666] font-medium">{formatDateLong(label)}</p>
+      <p className="mb-2.5 text-[#666] font-medium">{label ? formatDateLabel(label, true) : ''}</p>
 
       {smsEntry && (
         <div className="mb-1.5">
@@ -120,7 +133,9 @@ export function RecoveryChart() {
               fontSize={11}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => formatDateShort(v)}
+              tickFormatter={(v) => {
+                try { return formatDateLabel(v) } catch { return v }
+              }}
             />
             <YAxis
               stroke="#444"

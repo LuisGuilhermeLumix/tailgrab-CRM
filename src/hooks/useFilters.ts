@@ -1,13 +1,8 @@
 import { create } from 'zustand'
-import { toLocalDateStr } from '@/lib/dates'
+import { todayStr, daysAgoStr, firstOfMonthStr } from '@/lib/dates'
 
 export type Channel  = 'Todos' | 'SMS' | 'Email'
 export type RangeKey = 'hoje' | 'ontem' | '7d' | 'mes' | 'custom'
-
-const today = new Date()
-
-// Padrão: este mês
-const defaultFrom = new Date(today.getFullYear(), today.getMonth(), 1)
 
 interface FiltersState {
   dateFrom:    string
@@ -20,8 +15,8 @@ interface FiltersState {
 }
 
 export const useFilters = create<FiltersState>((set) => ({
-  dateFrom:    toLocalDateStr(defaultFrom),
-  dateTo:      toLocalDateStr(today),
+  dateFrom:    firstOfMonthStr(),
+  dateTo:      todayStr(),
   channel:     'Todos',
   activeRange: 'mes',
 
@@ -34,24 +29,21 @@ export const useFilters = create<FiltersState>((set) => ({
   }),
 
   setRange: (key) => {
-    const now  = new Date()
-    const from = new Date()
+    let from: string
+    let to: string = todayStr()
 
     if (key === 'hoje') {
-      // from e to = hoje (sem alterar)
+      from = todayStr()
     } else if (key === 'ontem') {
-      from.setDate(now.getDate() - 1)
-      now.setDate(now.getDate() - 1)
+      from = daysAgoStr(1)
+      to   = daysAgoStr(1)
     } else if (key === '7d') {
-      from.setDate(now.getDate() - 6)
-    } else if (key === 'mes') {
-      from.setDate(1) // primeiro dia do mês atual
+      from = daysAgoStr(6) // 6 dias atrás + hoje = 7 dias
+    } else {
+      // 'mes'
+      from = firstOfMonthStr()
     }
 
-    set({
-      dateFrom:    toLocalDateStr(from),
-      dateTo:      toLocalDateStr(now),
-      activeRange: key,
-    })
+    set({ dateFrom: from, dateTo: to, activeRange: key })
   },
 }))

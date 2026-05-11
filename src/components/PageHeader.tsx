@@ -8,10 +8,10 @@ interface PageHeaderProps {
 }
 
 const QUICK_RANGES = [
-  { key: 'hoje', label: 'Hoje' },
-  { key: '7d',   label: '7 dias' },
-  { key: 'mes',  label: 'Este mês' },
-  { key: '90d',  label: '90 dias' },
+  { key: 'hoje',  label: 'Hoje'    },
+  { key: 'ontem', label: 'Ontem'   },
+  { key: '7d',    label: '7 dias'  },
+  { key: '30d',   label: '30 dias' },
 ] as const;
 
 export function PageHeader({ title, showFilters = true }: PageHeaderProps) {

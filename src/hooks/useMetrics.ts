@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useFilters } from './useFilters'
+import { startOfDayUTC, endOfDayUTC } from '@/lib/dates'
 
 function parseDollar(val: any): number {
   if (val === null || val === undefined || val === '') return 0
@@ -43,8 +44,8 @@ export function useMetrics() {
       setLoading(true)
       setError(null)
       try {
-        const from = `${dateFrom}T00:00:00.000Z`
-        const to   = `${dateTo}T23:59:59.999Z`
+        const from = startOfDayUTC(dateFrom)
+        const to   = endOfDayUTC(dateTo)
 
         // Carrinhos abandonados — apenas primeiro disparo SMS (evita duplicidade)
         const cartPromise = supabase

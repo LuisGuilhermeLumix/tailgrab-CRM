@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useFilters } from './useFilters'
-import { startOfDayUTC, endOfDayUTC } from '@/lib/dates'
+import { startOfDayUTC, endOfDayUTC, utcToLocalDateStr } from '@/lib/dates'
 
 export interface TrackingRow {
   key: string
@@ -44,16 +44,24 @@ export function useTracking(eventFilter: string, page: number) {
         const to   = endOfDayUTC(dateTo)
 
         // Buscar TODOS os registros do período (para summary + chart)
-        const { data: allData, error: allError } = await supabase
-          .from('tailgrab_nutra_eua_sms_TC')
-          .select('created_at, event')
-          .gte('created_at', from)
-          .lte('created_at', to)
-          .limit(50000)
+        // Supabase tem cap default de 1000 rows por request — paginar via .range() em lotes
+        const CHUNK = 1000
+        const MAX_ROWS = 50000
+        const all: Array<{ created_at: string; event: string | null }> = []
+        for (let offset = 0; offset < MAX_ROWS; offset += CHUNK) {
+          const { data: chunk, error: chunkError } = await supabase
+            .from('tailgrab_nutra_eua_sms_TC')
+            .select('created_at, event')
+            .gte('created_at', from)
+            .lte('created_at', to)
+            .order('created_at', { ascending: true })
+            .range(offset, offset + CHUNK - 1)
 
-        if (allError) throw allError
-
-        const all = allData ?? []
+          if (chunkError) throw chunkError
+          if (!chunk || chunk.length === 0) break
+          all.push(...chunk)
+          if (chunk.length < CHUNK) break
+        }
 
         // ── SUMMARY ──
         setSummary({
@@ -66,7 +74,7 @@ export function useTracking(eventFilter: string, page: number) {
         // ── CHART DATA (agrupado por dia) ──
         const dayMap: Record<string, { infoReceived: number; delivered: number; failed: number }> = {}
         all.forEach(r => {
-          const day = r.created_at.slice(0, 10)
+          const day = utcToLocalDateStr(r.created_at)
           if (!dayMap[day]) dayMap[day] = { infoReceived: 0, delivered: 0, failed: 0 }
           if (r.event === 'InfoReceived')  dayMap[day].infoReceived++
           if (r.event === 'Delivered')     dayMap[day].delivered++

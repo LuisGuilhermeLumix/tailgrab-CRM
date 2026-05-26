@@ -49,6 +49,7 @@ export function useTracking(eventFilter: string, page: number) {
           .select('created_at, event')
           .gte('created_at', from)
           .lte('created_at', to)
+          .limit(50000)
 
         if (allError) throw allError
 

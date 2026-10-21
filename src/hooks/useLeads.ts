@@ -30,7 +30,7 @@ export function classifyLead(utm: string | null | undefined): { canal: 'SMS' | '
   if (utm === 'SMS')        return { canal: 'SMS',   status: 'Recuperado'  }
   if (utm === 'SMS_RMKT')   return { canal: 'SMS',   status: 'Remarketing' }
   if (utm === 'EMAIL_RMKT') return { canal: 'Email', status: 'Remarketing' }
-  if (utm?.startsWith('EMAIL_AC_')) return { canal: 'Email', status: 'Recuperado' }
+  if (utm === 'EMAIL' || utm?.startsWith('EMAIL_AC_')) return { canal: 'Email', status: 'Recuperado' }
   return null
 }
 

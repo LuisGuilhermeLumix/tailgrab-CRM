@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useFilters, getActiveCategories, channelsKey, classifyUtm, type SaleCategory } from './useFilters'
+import { useFilters, getActiveCategories, channelsKey, classifyUtm, utmOrClause, type SaleCategory } from './useFilters'
 import { startOfDayUTC, endOfDayUTC } from '@/lib/dates'
 
 function parseDollar(val: any): number {
@@ -89,13 +89,13 @@ export function useMetrics() {
         const rmktSmsDisparosPromise   = countEvent('%RMKT%SMS%')
         const rmktEmailDisparosPromise = countEvent('%RMKT%EMAIL%')
 
-        // Vendas: SMS + EMAIL_AC_* + SMS_RMKT + EMAIL_RMKT (sempre busca tudo; o filtro zera o que não é relevante)
+        // Vendas: SMS + EMAIL/EMAIL_AC_* + SMS_RMKT + EMAIL_RMKT (sempre busca tudo; o filtro zera o que não é relevante)
         const salesPromise = supabase
           .from('tailgrab_nutra_eua_CRM')
           .select('"($)", utm_source')
           .gte('created_at', from).lte('created_at', to)
           .eq('Event', 'order_paid')
-          .or('utm_source.eq.SMS,utm_source.like.EMAIL_AC_*,utm_source.eq.SMS_RMKT,utm_source.eq.EMAIL_RMKT')
+          .or(utmOrClause(['SMS', 'EMAIL_AC', 'SMS_RMKT', 'EMAIL_RMKT']))
           .limit(50000)
 
         const frontPromise = supabase

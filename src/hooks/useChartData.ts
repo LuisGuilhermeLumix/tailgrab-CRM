@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useFilters, getActiveCategories, classifyUtm, type SaleCategory } from './useFilters'
+import { useFilters, getActiveCategories, classifyUtm, utmOrClause, type SaleCategory } from './useFilters'
 import { startOfDayUTC, endOfDayUTC, utcToLocalDateStr, getDaysInRange } from '@/lib/dates'
 
 export interface ChartPoint {
@@ -48,7 +48,7 @@ export function useChartData() {
           .gte('created_at', startOfDayUTC(dateFrom))
           .lte('created_at', endOfDayUTC(dateTo))
           .eq('Event', 'order_paid')
-          .or('utm_source.eq.SMS,utm_source.like.EMAIL_AC_*,utm_source.eq.SMS_RMKT,utm_source.eq.EMAIL_RMKT')
+          .or(utmOrClause(['SMS', 'EMAIL_AC', 'SMS_RMKT', 'EMAIL_RMKT']))
           .limit(50000)
 
         if (error) throw error

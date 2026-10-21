@@ -105,7 +105,8 @@ export function getUtmFilter(channels: ChannelOption[]): UtmKey[] {
 export function utmOrClause(keys: UtmKey[]): string {
   return keys
     .map((k) => {
-      if (k === 'EMAIL_AC') return 'utm_source.like.EMAIL_AC_*'
+      // Email tradicional: 'EMAIL' exato (dados atuais) + 'EMAIL_AC_*' (novo padrão). Dentro do .or() o wildcard é '*'
+      if (k === 'EMAIL_AC') return 'utm_source.eq.EMAIL,utm_source.like.EMAIL_AC_*'
       return `utm_source.eq.${k}`
     })
     .join(',')
@@ -117,7 +118,7 @@ export function classifyUtm(utm: string | null | undefined): SaleCategory | null
   if (utm === 'SMS')        return 'sms'
   if (utm === 'SMS_RMKT')   return 'rmktSms'
   if (utm === 'EMAIL_RMKT') return 'rmktEmail'
-  if (utm.startsWith('EMAIL_AC_')) return 'email'
+  if (utm === 'EMAIL' || utm.startsWith('EMAIL_AC_')) return 'email'
   return null
 }
 

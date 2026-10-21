@@ -193,9 +193,8 @@ export function ChannelBadge({ channel }: { channel: "SMS" | "Email" }) {
 
 function StatusBadge({ status }: { status: LeadRow["status"] }) {
   const map = {
-    Recuperado: { bg: "rgba(34,197,94,0.10)", color: "#22c55e" },
-    Disparado: { bg: "rgba(245,158,11,0.10)", color: "#f59e0b" },
-    Pendente: { bg: "rgba(100,100,100,0.10)", color: "#888" },
+    Recuperado:  { bg: "rgba(34,197,94,0.10)",  color: "#22c55e" },
+    Remarketing: { bg: "rgba(245,158,11,0.10)", color: "#f59e0b" },
   } as const;
   const s = map[status];
   return (

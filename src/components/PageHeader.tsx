@@ -1,6 +1,6 @@
-import { Calendar, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
+import { Calendar, Check, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
-import { useFilters } from "@/hooks/useFilters";
+import { useFilters, type ChannelOption } from "@/hooks/useFilters";
 
 interface PageHeaderProps {
   title: string;
@@ -14,8 +14,16 @@ const QUICK_RANGES = [
   { key: 'mes',   label: 'Este mês'   },
 ] as const;
 
+const CHANNEL_OPTIONS: ChannelOption[] = ['SMS', 'Email', 'Remarketing'];
+
+function channelLabel(channels: ChannelOption[]): string {
+  if (channels.length === 0) return 'Todos';
+  if (channels.length <= 2) return channels.join(', ');
+  return `${channels.slice(0, 2).join(', ')} +${channels.length - 2}`;
+}
+
 export function PageHeader({ title, showFilters = true }: PageHeaderProps) {
-  const { dateFrom, dateTo, channel, activeRange, applyCustom, setChannel, setRange } = useFilters();
+  const { dateFrom, dateTo, channels, activeRange, applyCustom, toggleChannel, clearChannels, setRange } = useFilters();
 
   const [channelOpen, setChannelOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
@@ -23,6 +31,8 @@ export function PageHeader({ title, showFilters = true }: PageHeaderProps) {
   const [customTo, setCustomTo] = useState(dateTo);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const isAll = channels.length === 0;
 
   function handleApplyCustom() {
     applyCustom(customFrom, customTo);
@@ -99,23 +109,54 @@ export function PageHeader({ title, showFilters = true }: PageHeaderProps) {
       <div className="relative">
         <button
           onClick={() => setChannelOpen((v) => !v)}
-          className="h-9 flex items-center gap-2 px-3.5 rounded-lg bg-[#111] border border-[#222] text-[#ccc] text-sm hover:border-[#2a2a2a] transition-colors"
+          className={[
+            "h-9 flex items-center gap-2 px-3.5 rounded-lg border text-sm transition-colors",
+            isAll
+              ? "bg-[#111] border-[#222] text-[#ccc] hover:border-[#2a2a2a]"
+              : "bg-[rgba(128,215,248,0.12)] border-[#80d7f8] text-[#80d7f8]",
+          ].join(" ")}
         >
-          <span className="text-[#666] text-xs">Canal:</span>
-          <span className="text-xs">{channel}</span>
-          <ChevronDown size={12} className="text-[#666]" />
+          <span className={isAll ? "text-[#666] text-xs" : "text-[#80d7f8]/70 text-xs"}>Canal:</span>
+          <span className="text-xs whitespace-nowrap">{channelLabel(channels)}</span>
+          <ChevronDown size={12} className={isAll ? "text-[#666]" : "text-[#80d7f8]/70"} />
         </button>
         {channelOpen && (
-          <div className="absolute right-0 mt-1.5 w-36 rounded-lg bg-[#0f0f0f] border border-[#1e1e1e] py-1 shadow-lg z-50">
-            {(["Todos", "SMS", "Email"] as const).map((c) => (
-              <button
-                key={c}
-                onClick={() => { setChannel(c); setChannelOpen(false); }}
-                className="w-full text-left px-3 py-1.5 text-sm text-[#ccc] hover:bg-[#161616] transition-colors"
+          <div className="absolute right-0 mt-1.5 w-44 rounded-lg bg-[#0f0f0f] border border-[#1e1e1e] py-1 shadow-lg z-50">
+            <button
+              onClick={() => { clearChannels(); setChannelOpen(false); }}
+              className="w-full flex items-center gap-2 text-left px-3 py-1.5 text-sm text-[#ccc] hover:bg-[#161616] transition-colors"
+            >
+              <span
+                className={[
+                  "flex h-3.5 w-3.5 items-center justify-center rounded-[3px] border",
+                  isAll ? "bg-[#80d7f8] border-[#80d7f8] text-black" : "border-[#333]",
+                ].join(" ")}
               >
-                {c}
-              </button>
-            ))}
+                {isAll && <Check size={10} strokeWidth={3} />}
+              </span>
+              Todos
+            </button>
+            <div className="my-1 h-px bg-[#1a1a1a]" />
+            {CHANNEL_OPTIONS.map((c) => {
+              const checked = channels.includes(c);
+              return (
+                <button
+                  key={c}
+                  onClick={() => toggleChannel(c)}
+                  className="w-full flex items-center gap-2 text-left px-3 py-1.5 text-sm text-[#ccc] hover:bg-[#161616] transition-colors"
+                >
+                  <span
+                    className={[
+                      "flex h-3.5 w-3.5 items-center justify-center rounded-[3px] border",
+                      checked ? "bg-[#80d7f8] border-[#80d7f8] text-black" : "border-[#333]",
+                    ].join(" ")}
+                  >
+                    {checked && <Check size={10} strokeWidth={3} />}
+                  </span>
+                  {c}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

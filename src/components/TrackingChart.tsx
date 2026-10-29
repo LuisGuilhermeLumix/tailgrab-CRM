@@ -96,6 +96,15 @@ export function TrackingChart({ data, loading }: Props) {
           />
           <Line
             type="monotone"
+            dataKey="outForDelivery"
+            name="Out For Delivery"
+            stroke="#e65ff5"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4, fill: '#e65ff5' }}
+          />
+          <Line
+            type="monotone"
             dataKey="delivered"
             name="Delivered"
             stroke="#22c55e"

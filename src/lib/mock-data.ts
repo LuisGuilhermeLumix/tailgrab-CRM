@@ -2,7 +2,7 @@
 
 export type Channel = "SMS" | "Email";
 export type LeadStatus = "Recuperado" | "Disparado" | "Pendente";
-export type TrackingEvent = "InfoReceived" | "Delivered" | "FailedAttempt";
+export type TrackingEvent = "InfoReceived" | "OutForDelivery" | "Delivered" | "FailedAttempt";
 
 export interface Lead {
   id: string;

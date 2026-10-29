@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CheckCircle, Package, Send, XCircle } from "lucide-react";
+import { CheckCircle, Package, Send, Truck, XCircle } from "lucide-react";
 import { useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { MetricCard } from "@/components/MetricCard";
@@ -27,7 +27,7 @@ function TrackingPage() {
   return (
     <AppLayout title="Tracking Codes">
       <div className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <MetricCard
             label="Total Enviados"
             icon={Send}
@@ -39,6 +39,12 @@ function TrackingPage() {
             icon={Package}
             loading={loading}
             value={formatNumber(summary.infoReceived)}
+          />
+          <MetricCard
+            label="Out For Delivery"
+            icon={Truck}
+            loading={loading}
+            value={<span className="text-[#e65ff5]">{formatNumber(summary.outForDelivery)}</span>}
           />
           <MetricCard
             label="Delivered"

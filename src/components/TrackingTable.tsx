@@ -7,11 +7,20 @@ function formatDate(dateStr: string) {
   try { return format(parseISO(dateStr), 'MMM dd, yyyy HH:mm') } catch { return dateStr }
 }
 
+const EVENT_OPTIONS = [
+  { value: 'Todos',          label: 'Todos os Eventos' },
+  { value: 'InfoReceived',   label: 'Info Received'    },
+  { value: 'OutForDelivery', label: 'Out For Delivery' },
+  { value: 'Delivered',      label: 'Delivered'        },
+  { value: 'FailedAttempt',  label: 'Failed Attempt'   },
+] as const
+
 function EventBadge({ event }: { event: string }) {
   const map: Record<string, { label: string; color: string; bg: string }> = {
-    InfoReceived:  { label: 'Info Received',  color: '#80d7f8', bg: 'rgba(128,215,248,0.10)' },
-    Delivered:     { label: 'Delivered',      color: '#22c55e', bg: 'rgba(34,197,94,0.10)'   },
-    FailedAttempt: { label: 'Failed Attempt', color: '#ef4444', bg: 'rgba(239,68,68,0.10)'   },
+    InfoReceived:   { label: 'Info Received',    color: '#80d7f8', bg: 'rgba(128,215,248,0.10)' },
+    OutForDelivery: { label: 'Out For Delivery', color: '#e65ff5', bg: 'rgba(230,95,245,0.10)'  },
+    Delivered:      { label: 'Delivered',        color: '#22c55e', bg: 'rgba(34,197,94,0.10)'   },
+    FailedAttempt:  { label: 'Failed Attempt',   color: '#ef4444', bg: 'rgba(239,68,68,0.10)'   },
   }
   const style = map[event] ?? { label: event, color: '#888', bg: 'rgba(100,100,100,0.10)' }
   return (
@@ -55,22 +64,22 @@ export function TrackingTable({
             className="h-9 flex items-center gap-2 rounded-lg bg-[#0f0f0f] border border-[#1e1e1e] px-3.5 text-sm text-[#ccc] hover:bg-[#161616] transition-colors"
           >
             <span className="text-[#666] text-xs">Evento:</span>
-            <span>{eventFilter === "Todos" ? "Todos os Eventos" : eventFilter}</span>
+            <span>{EVENT_OPTIONS.find((o) => o.value === eventFilter)?.label ?? eventFilter}</span>
             <ChevronDown size={14} className="text-[#666]" />
           </button>
           {open && (
             <div className="absolute right-0 mt-1.5 w-48 rounded-lg bg-[#0f0f0f] border border-[#1e1e1e] py-1 shadow-lg z-20">
-              {(["Todos", "InfoReceived", "Delivered", "FailedAttempt"] as const).map((opt) => (
+              {EVENT_OPTIONS.map((opt) => (
                 <button
-                  key={opt}
+                  key={opt.value}
                   onClick={() => {
-                    setEventFilter(opt);
+                    setEventFilter(opt.value);
                     setOpen(false);
                     setPage(1);
                   }}
                   className="w-full text-left px-3 py-1.5 text-sm text-[#ccc] hover:bg-[#161616] transition-colors"
                 >
-                  {opt === "Todos" ? "Todos os Eventos" : opt}
+                  {opt.label}
                 </button>
               ))}
             </div>

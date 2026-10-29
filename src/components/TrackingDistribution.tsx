@@ -4,6 +4,7 @@ interface TrackingDistributionProps {
   summary: {
     total: number;
     infoReceived: number;
+    outForDelivery: number;
     delivered: number;
     failed: number;
   };
@@ -13,6 +14,7 @@ export function TrackingDistribution({ summary }: TrackingDistributionProps) {
   const total = summary.total || 1;
   const dist = [
     { name: "InfoReceived", value: +((summary.infoReceived / total) * 100).toFixed(1), color: "#80d7f8" },
+    { name: "OutForDelivery", value: +((summary.outForDelivery / total) * 100).toFixed(1), color: "#e65ff5" },
     { name: "Delivered", value: +((summary.delivered / total) * 100).toFixed(1), color: "#22c55e" },
     { name: "FailedAttempt", value: +((summary.failed / total) * 100).toFixed(1), color: "#ef4444" },
   ];
@@ -23,7 +25,7 @@ export function TrackingDistribution({ summary }: TrackingDistributionProps) {
         <h2 className="text-sm font-semibold text-white">Distribuição por Evento</h2>
         <p className="text-xs text-[#555] mt-1">Porcentagem de cada tipo</p>
       </div>
-      <div style={{ width: "100%", height: 160 }}>
+      <div style={{ width: "100%", height: 200 }}>
         <ResponsiveContainer>
           <BarChart
             layout="vertical"

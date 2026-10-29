@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useFilters } from './useFilters'
-import { startOfDayUTC, endOfDayUTC, utcToLocalDateStr } from '@/lib/dates'
+import { startOfDayUTC, endOfDayUTC, utcToLocalDateStr, getDaysInRange } from '@/lib/dates'
 
 export interface TrackingRow {
   key: string
@@ -15,6 +15,7 @@ export interface TrackingRow {
 export interface TrackingSummary {
   total: number
   infoReceived: number
+  outForDelivery: number
   delivered: number
   failed: number
 }
@@ -22,6 +23,7 @@ export interface TrackingSummary {
 export interface TrackingChartPoint {
   date: string
   infoReceived: number
+  outForDelivery: number
   delivered: number
   failed: number
 }
@@ -31,7 +33,7 @@ const PER_PAGE = 20
 export function useTracking(eventFilter: string, page: number) {
   const { dateFrom, dateTo } = useFilters()
   const [rows, setRows]             = useState<TrackingRow[]>([])
-  const [summary, setSummary]       = useState<TrackingSummary>({ total: 0, infoReceived: 0, delivered: 0, failed: 0 })
+  const [summary, setSummary]       = useState<TrackingSummary>({ total: 0, infoReceived: 0, outForDelivery: 0, delivered: 0, failed: 0 })
   const [chartData, setChartData]   = useState<TrackingChartPoint[]>([])
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading]       = useState(true)
@@ -65,20 +67,25 @@ export function useTracking(eventFilter: string, page: number) {
 
         // ── SUMMARY ──
         setSummary({
-          total:        all.length,
-          infoReceived: all.filter(r => r.event === 'InfoReceived').length,
-          delivered:    all.filter(r => r.event === 'Delivered').length,
-          failed:       all.filter(r => r.event === 'FailedAttempt').length,
+          total:          all.length,
+          infoReceived:   all.filter(r => r.event === 'InfoReceived').length,
+          outForDelivery: all.filter(r => r.event === 'OutForDelivery').length,
+          delivered:      all.filter(r => r.event === 'Delivered').length,
+          failed:         all.filter(r => r.event === 'FailedAttempt').length,
         })
 
-        // ── CHART DATA (agrupado por dia) ──
-        const dayMap: Record<string, { infoReceived: number; delivered: number; failed: number }> = {}
+        // ── CHART DATA (agrupado por dia, todos os dias do período inicializados com zero) ──
+        const dayMap: Record<string, { infoReceived: number; outForDelivery: number; delivered: number; failed: number }> = {}
+        getDaysInRange(dateFrom, dateTo).forEach(day => {
+          dayMap[day] = { infoReceived: 0, outForDelivery: 0, delivered: 0, failed: 0 }
+        })
         all.forEach(r => {
           const day = utcToLocalDateStr(r.created_at)
-          if (!dayMap[day]) dayMap[day] = { infoReceived: 0, delivered: 0, failed: 0 }
-          if (r.event === 'InfoReceived')  dayMap[day].infoReceived++
-          if (r.event === 'Delivered')     dayMap[day].delivered++
-          if (r.event === 'FailedAttempt') dayMap[day].failed++
+          if (!dayMap[day]) dayMap[day] = { infoReceived: 0, outForDelivery: 0, delivered: 0, failed: 0 }
+          if (r.event === 'InfoReceived')   dayMap[day].infoReceived++
+          if (r.event === 'OutForDelivery') dayMap[day].outForDelivery++
+          if (r.event === 'Delivered')      dayMap[day].delivered++
+          if (r.event === 'FailedAttempt')  dayMap[day].failed++
         })
         const chart: TrackingChartPoint[] = Object.entries(dayMap)
           .sort(([a], [b]) => a.localeCompare(b))

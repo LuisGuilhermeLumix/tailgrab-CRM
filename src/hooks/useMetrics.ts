@@ -127,7 +127,6 @@ export function useMetrics() {
 
         const carrinhosAbandonados = (cartRes as any).count ?? 0
         const cartSms   = carrinhosAbandonados
-        const cartTotal = carrinhosAbandonados
         const cartEmail = (cartEmailRes as any).count ?? 0
 
         // Breakdowns brutos (sempre calculados)
@@ -187,8 +186,9 @@ export function useMetrics() {
             rmktEmail: ticket(vendas.rmktEmail, receita.rmktEmail),
           },
           // Base da taxa: carrinhos abandonados do canal (RMKT reaborda os mesmos leads)
+          // Total = média ponderada dos canais ativos: vendas totais / (carrinhos SMS + carrinhos e-mail)
           taxaConversao: {
-            total:     taxa(totalVendas,      cartTotal),
+            total:     taxa(totalVendas, (active.has('sms') || active.has('rmktSms') ? cartSms : 0) + (active.has('email') || active.has('rmktEmail') ? cartEmail : 0)),
             sms:       taxa(vendas.sms,       cartSms),
             email:     taxa(vendas.email,     cartEmail),
             rmktSms:   taxa(vendas.rmktSms,   cartSms),

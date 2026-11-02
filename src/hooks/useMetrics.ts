@@ -61,12 +61,15 @@ export function useMetrics() {
         const to   = endOfDayUTC(dateTo)
         const active = getActiveCategories(channels)
 
+        // ignorar_envio = true marca envios do 1º disparo feitos a leads que compraram em até 10 min
+        // (período anterior ao atraso de 10 min no n8n). Esses não contam como disparo nem como carrinho.
         const countEvent = (pattern: string) =>
           supabase
             .from('tailgrab_nutra_eua_CRM')
             .select('id', { count: 'exact', head: true })
             .gte('created_at', from).lte('created_at', to)
             .ilike('Event', pattern)
+            .eq('ignorar_envio', false)
 
         // Carrinhos abandonados — apenas primeiro disparo SMS (evita duplicidade). NÃO entra RMKT.
         const cartPromise = supabase
@@ -74,12 +77,14 @@ export function useMetrics() {
           .select('id', { count: 'exact', head: true })
           .gte('created_at', from).lte('created_at', to)
           .eq('Event', 'abandoned_cart_01_SMS')
+          .eq('ignorar_envio', false)
 
         const cartEmailPromise = supabase
           .from('tailgrab_nutra_eua_CRM')
           .select('id', { count: 'exact', head: true })
           .gte('created_at', from).lte('created_at', to)
           .eq('Event', 'abandoned_cart_01_EMAIL')
+          .eq('ignorar_envio', false)
 
         // Disparos tradicionais (abandoned_cart_XX_SMS / _EMAIL)
         const smsDisparosPromise   = countEvent('%abandoned_cart%SMS%')
